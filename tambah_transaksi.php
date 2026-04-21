@@ -1,88 +1,56 @@
-<?php include '../koneksi.php'; 
-if (!isset($_SESSION['id_user'])) { header("Location: ../index.php"); exit; } ?>
+<?php
+include 'koneksi.php';
+
+// Cek apakah tombol simpan sudah diklik
+if (isset($_POST['simpan'])) {
+    $id_user     = $_POST['id_user'];
+    $id_kategori = $_POST['id_kategori'];
+    $jumlah      = $_POST['jumlah'];
+    $keterangan  = $_POST['keterangan'];
+    $tanggal     = $_POST['tanggal'];
+
+    // Memanggil Stored Procedure 'tambah_transaksi' dari file SQL kamu
+    $query = "CALL tambah_transaksi($id_user, $id_kategori, $jumlah, '$keterangan', '$tanggal')";
+    
+    if (mysqli_query($koneksi, $query)) {
+        echo "<script>alert('Data Berhasil Ditambah!'); window.location='index.php';</script>";
+    } else {
+        echo "Error: " . mysqli_error($koneksi);
+    }
+}
+?>
+
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Execute Order | Financial</title>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Tambah Transaksi</title>
     <style>
-        /* Memperbaiki tampilan kalender browser agar sesuai tema dark */
-        ::-webkit-calendar-picker-indicator {
-            filter: invert(1); /* Membuat icon kalender jadi putih */
-            cursor: pointer;
-        }
+        body { font-family: sans-serif; background: #121212; color: white; padding: 20px; }
+        form { max-width: 400px; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+        input, select, textarea { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #333; background: #252525; color: white; }
+        button { background: #00adb5; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 600px;">
-        <div class="header-box">
-            <h2 style="margin:0; color:var(--primary);"><i class="fas fa-file-invoice-dollar"></i> NEW_ORDER</h2>
-            <div class="nav-links">
-                <a href="dashboard.php"><i class="fas fa-arrow-left"></i> CANCEL</a>
-            </div>
-        </div>
+    <h2>Input Transaksi Baru</h2>
+    <form method="POST">
+        <label>User ID (Sesuai tabel users):</label>
+        <input type="number" name="id_user" placeholder="Contoh: 1" required>
 
-        <div class="card">
-            <form method="POST" id="transaksiForm">
-                <label style="color:var(--primary); font-size:11px;">SELECT_CATEGORY</label>
-                <select name="kat" required>
-                    <?php 
-                    $qk = mysqli_query($koneksi, "SELECT * FROM kategori");
-                    while($rk = mysqli_fetch_assoc($qk)) {
-                        echo "<option value='{$rk['id_kategori']}'>".strtoupper($rk['nama_kategori'])."</option>";
-                    } ?>
-                </select>
+        <label>Kategori ID (Sesuai tabel kategori):</label>
+        <input type="number" name="id_kategori" placeholder="Contoh: 1 (Gaji) atau 4 (Makan)" required>
 
-                <label style="color:var(--primary); font-size:11px;">NOMINAL_AMOUNT</label>
-                <input type="text" id="display_jumlah" placeholder="e.g. 3,000,000" required>
-                <input type="hidden" name="jml" id="real_jumlah">
+        <label>Jumlah:</label>
+        <input type="number" name="jumlah" required>
 
-                <label style="color:var(--primary); font-size:11px;">TRANSACTION_NOTE</label>
-                <textarea name="ket" rows="3" placeholder="Notes..."></textarea>
+        <label>Keterangan:</label>
+        <textarea name="keterangan"></textarea>
 
-                <label style="color:var(--primary); font-size:11px;">EXECUTION_DATE</label>
-                <input type="date" name="tgl" value="<?php echo date('Y-m-d'); ?>" required>
+        <label>Tanggal:</label>
+        <input type="date" name="tanggal" required>
 
-                <button type="submit" name="simpan"><i class="fas fa-bolt"></i> EXECUTE TRANSACTION</button>
-            </form>
-
-            <?php 
-            if(isset($_POST['simpan'])){
-                $u=$_SESSION['id_user']; $k=$_POST['kat']; $j=$_POST['jml']; $ket=$_POST['ket']; $t=$_POST['tgl'];
-                mysqli_query($koneksi, "CALL tambah_transaksi($u,$k,$j,'$ket','$t')");
-                echo "<script>window.location='dashboard.php';</script>";
-            } ?>
-        </div>
-    </div>
-
-    <script>
-        const displayInput = document.getElementById('display_jumlah');
-        const realInput = document.getElementById('real_jumlah');
-
-        displayInput.addEventListener('input', function(e) {
-            // Ambil angka saja
-            let value = this.value.replace(/[^0-9]/g, '');
-            
-            // Simpan angka asli ke hidden input
-            realInput.value = value;
-            
-            // Format angka dengan koma untuk tampilan
-            if (value) {
-                this.value = parseInt(value).toLocaleString('en-US');
-            } else {
-                this.value = '';
-            }
-        });
-
-        // Pastikan saat submit, data terkirim
-        document.getElementById('transaksiForm').onsubmit = function() {
-            if(!realInput.value) {
-                alert("Please enter amount!");
-                return false;
-            }
-        };
-    </script>
+        <button type="submit" name="simpan">Simpan Transaksi</button>
+        <a href="index.php" style="color: #aaa; text-decoration: none; margin-left: 10px;">Batal</a>
+    </form>
 </body>
 </html>
