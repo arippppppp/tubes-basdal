@@ -16,7 +16,7 @@ if (isset($_POST['login'])) {
         
         // Redirect stabil menggunakan JavaScript
         if ($d['role'] == 'admin') {
-            echo "<script>window.location='admin/dashboard.php';</script>";
+            echo "<script>window.location='admin/dashboard1.php';</script>";
         } else {
             echo "<script>window.location='user/dashboard.php';</script>";
         }
